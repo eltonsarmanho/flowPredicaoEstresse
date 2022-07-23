@@ -16,7 +16,8 @@ import os
 import glob
 
 class CreateDatasetEmotional:
-    def __init__(self):
+    def __init__(self,rootdir):
+        self.rootdir = rootdir
         pass;
 
     def getFilesPkl(self,rootdir,extensio):
@@ -45,6 +46,8 @@ class CreateDatasetEmotional:
 
     def runConstructor(self,files_eda,files_pkl):
         #Ler dados EDA e PKL
+        list_of_dataframes = []
+
         for file_eda,file_pkl in zip (files_eda,files_pkl):
             print(file_eda[0],file_pkl[0])
             data_pkl = pd.read_pickle(file_pkl[0])
@@ -102,15 +105,18 @@ class CreateDatasetEmotional:
             PHA_ind, col_names = ph.fmap(fixed_length, indicators, phasic)
 
             PHA_ind_df = pd.DataFrame(PHA_ind, columns=col_names)
-
             PHA_ind_df['label'] = PHA_ind_df['label'].replace([0, 1, 2, 3, 4, 5, 6, 7],
                                                               ['transient', 'baseline', 'stress', 'amusement',
                                                                'meditation', 'ignored', 'ignored', 'ignored'])
             print(PHA_ind_df)
+            list_of_dataframes.append(PHA_ind_df)
+        #Save all dataframe in CSV
+        df = pd.concat(list_of_dataframes)
+        df.to_csv(self.rootdir+'out.csv')
 
 if __name__ == '__main__':
-    obj = CreateDatasetEmotional()
     rootdir = '/home/eltonss/Documents/Flow/WESAD/'
+    obj = CreateDatasetEmotional(rootdir)
     participants,files_pkl = obj.getFilesPkl(rootdir,'*.pkl')
     print(participants,files_pkl)
     files_eda = obj.getFilesEDA(rootdir,participants, 'EDA*.csv')
