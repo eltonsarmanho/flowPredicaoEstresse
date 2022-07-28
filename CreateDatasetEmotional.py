@@ -101,10 +101,11 @@ class CreateDatasetEmotional:
             # define the windowing method
             fixed_length = ph.FixedSegments(step=10, width=30, labels=label)
 
-            # compute
-            PHA_ind, col_names = ph.fmap(fixed_length, indicators, phasic)
+            # compute all features from EDA
+            PHA_ind, col_names = ph.fmap(fixed_length,  ph.preset_phasic(delta=0.02), phasic)
+            col_names_update = list(map(lambda x: str(x).replace('pha_', ''), col_names))
+            PHA_ind_df = pd.DataFrame(PHA_ind, columns=col_names_update)
 
-            PHA_ind_df = pd.DataFrame(PHA_ind, columns=col_names)
             PHA_ind_df['label'] = PHA_ind_df['label'].replace([0, 1, 2, 3, 4, 5, 6, 7],
                                                               ['transient', 'baseline', 'stress', 'amusement',
                                                                'meditation', 'ignored', 'ignored', 'ignored'])
