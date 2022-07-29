@@ -187,11 +187,12 @@ class StressPrediction:
         # Print
         print(df.columns)
         print(rf_mod.feature_importances_)
+
         #Selecting Features
-        dataframe = pd.DataFrame({'features':df.columns,'Values': rf_mod.feature_importances_})
+        dataframe = pd.DataFrame({'Features':df.columns,'Values': rf_mod.feature_importances_})
         dataframe = dataframe.sort_values(by=['Values'],ascending=False)
         print(dataframe)
-        best_feature = list(dataframe['features'].iloc[:n_best_feature])
+        best_feature = list(dataframe['Features'].iloc[:n_best_feature])
         best_feature.append(column_name_target)
         print("The best features selected: ", best_feature)
         self.dataset = self.dataset[best_feature]
