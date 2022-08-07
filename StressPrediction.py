@@ -29,7 +29,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
 from sklearn import svm
 from sklearn.feature_selection import mutual_info_classif
-from skfeature.function.similarity_based import fisher_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
@@ -42,28 +41,30 @@ from sklearn.ensemble import ExtraTreesRegressor
 class StressPrediction:
 
     def __init__(self):
-        self.dataset = pd.read_csv('./Dataset/out.csv', index_col=0)
+        self.dataset = pd.read_csv('/home/eltonss/PycharmProjects/flowPredicaoEstresse/Dataset/out.csv', index_col=0)
         self.dataset.drop(columns=['begin', 'end',], inplace=True)
-        print(self.dataset.shape)
+        #print(self.dataset.shape)
         values_drop =['ignored','transient','meditation','amusement']
         self.dataset = self.dataset[~self.dataset['label'].isin(values_drop)]
 
 
-    def preprocessing(self, column_name_target):
+    def preprocessing(self, column_name_target,split_only_training=False):
         # I'm codifying categorical value to numeric value
         le_sex = preprocessing.LabelEncoder()
         new = self.dataset.copy()
         le_sex.fit(list(set(self.dataset[column_name_target])))
-        print(Counter(new[column_name_target]))
+        #print(Counter(new[column_name_target]))
         new[column_name_target] = le_sex.transform(new[column_name_target])
         #print(Counter(new[column_name_target]))
         # To convert for array
         y = np.asarray(new[column_name_target])
         df = self.dataset.copy().drop(column_name_target, axis=1)  # Remove the predict variable
-
         X = np.asarray(df)
         # Data Standardization give data zero mean and unit variance,
         X = preprocessing.StandardScaler().fit(X).transform(X.astype(float))
+        if(split_only_training):
+            print('Train set:', X.shape, y.shape)
+            return X,y;
         # Split dataset
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=4,stratify=y)
         print('Train set:', X_train.shape, y_train.shape)
@@ -109,13 +110,13 @@ class StressPrediction:
         plt.show()
 
     def svc_param_selection(self,X, y, nfolds):
-        Cs =     [0.001,0.01,0.1,1]
-        gammas = [ 1,2,3,4,5]
+        Cs =     [0.01,0.1,1]
+        gammas = [ 1,2,3,4,]
         decision_function_shape = ['ovo', 'ovr']
         param_grid = {'C': Cs,
                       'gamma' : gammas,
-                      'degree':[1,2,3,4,5],
-                      'kernel' : ['linear','poly','sigmoid','rbf'],
+                      'degree':[1,2,3,4],
+                      'kernel' : ['poly','sigmoid','rbf'],
                       'decision_function_shape': decision_function_shape
                       }
         grid_search = GridSearchCV(svm.SVC(probability=True), param_grid, cv=nfolds)
@@ -124,26 +125,26 @@ class StressPrediction:
         print(grid_search.best_score_)
         return grid_search,grid_search.best_params_
 
-    def featureSelection(self,column_name_target,n_best_feature=None):
-        print('<feature Selection>')
-        y = np.asarray(self.dataset[column_name_target])
-        df = self.dataset.copy().drop(column_name_target, axis=1)  # Remove the predict variable
-        number_feature_max = df.shape[1]
-        X = np.asarray(df)
-
-        # Calculating scores #most recommended
-        rank = fisher_score.fisher_score(X, y)
-        feat_importances = pd.Series(rank, df.columns)
-        feat_importances.name = 'rank'
-        if (n_best_feature != None) and (n_best_feature<=number_feature_max):
-
-            result= feat_importances.sort_values(ascending=False).to_frame().reset_index()
-            best_feature = list(result['index'].iloc[:n_best_feature])
-            best_feature.append(column_name_target)
-            print("The best features selected: ",best_feature)
-            self.dataset=self.dataset[best_feature]
-        feat_importances.plot(kind='barh', color='teal')
-        plt.show()
+    # def featureSelection(self,column_name_target,n_best_feature=None):
+    #     print('<feature Selection>')
+    #     y = np.asarray(self.dataset[column_name_target])
+    #     df = self.dataset.copy().drop(column_name_target, axis=1)  # Remove the predict variable
+    #     number_feature_max = df.shape[1]
+    #     X = np.asarray(df)
+    #
+    #     # Calculating scores #most recommended
+    #     rank = fisher_score.fisher_score(X, y)
+    #     feat_importances = pd.Series(rank, df.columns)
+    #     feat_importances.name = 'rank'
+    #     if (n_best_feature != None) and (n_best_feature<=number_feature_max):
+    #
+    #         result= feat_importances.sort_values(ascending=False).to_frame().reset_index()
+    #         best_feature = list(result['index'].iloc[:n_best_feature])
+    #         best_feature.append(column_name_target)
+    #         print("The best features selected: ",best_feature)
+    #         self.dataset=self.dataset[best_feature]
+    #     feat_importances.plot(kind='barh', color='teal')
+    #     plt.show()
 
     def featureSelectionRFECV(self,column_name_target,n_best_feature=None):
         print('<feature Selection>')
@@ -185,17 +186,18 @@ class StressPrediction:
         # Fit
         rf_mod.fit(X, y)
         # Print
-        print(df.columns)
-        print(rf_mod.feature_importances_)
+        #print(df.columns)
+        #print(rf_mod.feature_importances_)
 
         #Selecting Features
         dataframe = pd.DataFrame({'Features':df.columns,'Values': rf_mod.feature_importances_})
         dataframe = dataframe.sort_values(by=['Values'],ascending=False)
-        print(dataframe)
-        best_feature = list(dataframe['Features'].iloc[:n_best_feature])
-        best_feature.append(column_name_target)
-        print("The best features selected: ", best_feature)
-        self.dataset = self.dataset[best_feature]
+        #print(dataframe)
+        self.best_feature = list(dataframe['Features'].iloc[:n_best_feature])
+
+        print("The best features selected: ", self.best_feature+[column_name_target])
+        self.dataset = self.dataset[self.best_feature+[column_name_target]]
+
 
     def correlation(self,column_name_target_discrete=None):
         print("<Correlation>")
@@ -244,7 +246,7 @@ class StressPrediction:
 
         missing_values = self.dataset.isnull().sum()
         percent_missing = ((missing_values / self.dataset.index.size) * 100)
-        print(percent_missing)
+        #print(percent_missing)
 
     def removeOutliers(self):
         print('<Remove Outliers>')
@@ -262,7 +264,7 @@ class StressPrediction:
 
 if __name__ == '__main__':
     obj = StressPrediction()
-    print(obj.dataset.info())
+    #print(obj.dataset.info())
 
 
     # Passo 1: Missiing Values
@@ -278,20 +280,20 @@ if __name__ == '__main__':
 
     #Passo 3: Feature Selection
     #obj.correlation(column_name_target_discrete='label')
-    obj.featureSelectionTree('label',5)
+    obj.featureSelectionTree('label',7)
 
     #Passo 4: Dividi o conjunto de dados
     X_train, X_test, y_train, y_test = obj.preprocessing('label')
 
     #Passo 5: Executando Modelo
-    # model = svm.SVC(probability=True)
-    # best_params_ ={'C': 0.1, 'decision_function_shape': 'ovo', 'degree': 1, 'gamma': 1, 'kernel': 'rbf'}
-    # model.set_params(**best_params_)
-    # model.fit(X_train, y_train)
-    # print('Accuracy: %.2f' % (model.score(X_test, y_test)))
-    # obj.plot_confusion_matrix(X_test, y_test, model)
+    model = svm.SVC(probability=True)
+    best_params_ ={'C': 1, 'decision_function_shape': 'ovo', 'degree': 1, 'gamma': 2, 'kernel': 'rbf'}
+    model.set_params(**best_params_)
+    model.fit(X_train, y_train)
+    print('Accuracy: %.2f' % (model.score(X_test, y_test)))
+    obj.plot_confusion_matrix(X_test, y_test, model)
 
     # Passo Especial: Obtendo melhor configuração
-    model,best_params_ = obj.svc_param_selection(X_train,y_train,3)
+    #model,best_params_ = obj.svc_param_selection(X_train,y_train,3)
     #obj.plot_confusion_matrix(X_test, y_test, model)
 

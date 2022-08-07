@@ -66,7 +66,8 @@ class CreateDatasetEmotional:
             # create label
             label = ph.EvenlySignal(data_pkl['label'], sampling_freq=700, signal_type='label')
 
-            eda_data = data_pkl['signal']['wrist']['EDA']
+            eda_data = data_eda.iloc[2:,:].values
+            print(type(eda_data))
             eda = EvenlySignal(values=eda_data,
                                sampling_freq=fsamp,
                                signal_type='eda',
@@ -113,7 +114,7 @@ class CreateDatasetEmotional:
             list_of_dataframes.append(PHA_ind_df)
         #Save all dataframe in CSV
         df = pd.concat(list_of_dataframes)
-        df.to_csv(self.rootdir+'out.csv')
+        #df.to_csv(self.rootdir+'out.csv')
 
 if __name__ == '__main__':
     rootdir = '/home/eltonss/Documents/Flow/WESAD/'

@@ -20,13 +20,38 @@ import glob
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-
-
-    dataset = pd.read_csv('./Dataset/out.csv',index_col=0)
-
-    dataset.drop(columns=['begin','end'],inplace=True)
-    print(dataset.info())
-
+    pass;
+    # obj = StressPrediction()
+    # print(obj.dataset.info())
+    # # separate array into input and output components
+    # X_train, X_test, y_train, y_test = obj.preprocessing('label')
+    #
+    # train_accuracies = {}
+    # test_accuracies = {}
+    # neighbors = np.arange(1, 40)
+    # for neighbor in neighbors:
+    #     model = KNeighborsClassifier(n_neighbors=neighbor)
+    #     model.fit(X_train, y_train)
+    #     train_accuracies[neighbor] = model.score(X_train, y_train)
+    #     test_accuracies[neighbor] = model.score(X_test, y_test)
+    #
+    # plt.figure(figsize=(8, 6))
+    # plt.title("KNN: Variando Numero de vizinhos")
+    # plt.plot(neighbors, train_accuracies.values(), label="Acuracia de Treinamento")
+    # plt.plot(neighbors, test_accuracies.values(), label="Acuracia de teste")
+    # plt.legend()
+    # plt.xlabel("Vizinhos")
+    # plt.ylabel("Accuracy")
+    # plt.show()
+    #
+    # obj.plot_confusion_matrix(X_test, y_test, model)
+    # print('Accuracy: %.2f' % (model.score(X_test, y_test)))
+    ##################################################################
+    # dataset = pd.read_csv('./Dataset/out.csv',index_col=0)
+    #
+    # dataset.drop(columns=['begin','end'],inplace=True)
+    # print(dataset.info())
+    ##############################################################
     # data = pd.read_pickle("./Dataset/S14.pkl")
     #
     # #print(data['label'])
