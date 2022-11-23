@@ -3,7 +3,8 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import pandas as pd
-
+import numpy as np
+import matplotlib.pyplot as plt
 import collections
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,13 +15,44 @@ from pyphysio import EvenlySignal
 # import all pyphysio classes and methods
 import pyphysio as ph
 import pyphysio.filters.Filters as flt
-
+import heartpy as hp
 import os
 import glob
-
+import matplotlib
+matplotlib.use('TkAgg')
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    pass;
+    # data_hr = pd.read_csv('Dataset/HEARTRATE_AUTO.csv')
+    # print(data_hr)
+    # bvp = ph.EvenlySignal(data_hr['heartRate'],signal_type='HR', sampling_freq=0.5,  start_time=0)
+    # bvp = bvp.resample(fout=4096, kind='cubic')
+    # #
+    # #bvp.plot()
+    # # # chech signal properties
+    # print('Sampling frequency: {}'.format(bvp.get_sampling_freq()))
+    # print('Start time:         {}'.format(bvp.get_start_time()))
+    # print('End time:           {}'.format(bvp.get_end_time()))
+    # print('Duration:           {}'.format(bvp.get_duration()))
+    # print('Signal type  :      {}'.format(bvp.get_signal_type()))
+    # print('First ten instants: {}'.format(bvp.get_times()[0:10]))
+    # #
+    # ibi = ph.BeatFromBP()(bvp)
+    # #
+    # id_bad_ibi = ph.BeatOutliers(cache=3, sensitivity=0.25)(ibi)
+
+    data = hp.get_data('Dataset/HEARTRATE_AUTO_slice.csv',delim = ',', column_name='heartRate')
+    print(data)
+    datetime_data = hp.get_data('Dataset/HEARTRATE_AUTO_slice.csv',delim = ',', column_name = 'time')
+    fs = hp.get_samplerate_datetime(datetime_data,timeformat='%Y-%m-%d %M:%S')
+    print(fs)
+    working_data, measures = hp.process(data, fs)
+    hp.plotter(working_data, measures)
+
+    #working_data, measures = hp.process(data,fs)
+    # plot with different title
+    #hp.plotter(working_data, measures, title='Heart Beat Detection on Noisy Signal')
+    plt.show()
+
     # obj = StressPrediction()
     # print(obj.dataset.info())
     # # separate array into input and output components
